@@ -10,7 +10,7 @@ async function getRobot() {
       if (navigator.gpu) {
         robot = await pipeline(
           "text-generation",
-          "onnx-community/Qwen2.5-0.5B-Instruct",
+        "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA"
           {
             dtype: "q4",
             device: "webgpu",
