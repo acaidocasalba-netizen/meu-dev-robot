@@ -1,6 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { pipeline } from "@huggingface/transformers";
+
+let robot = null;
+
+async function getRobot() {
+  if (!robot) {
+    robot = await pipeline(
+      "text-generation",
+      "onnx-community/Qwen2.5-0.5B-Instruct",
+      {
+        dtype: "q4",
+        device: "webgpu",
+      }
+    );
+  }
+
+  return robot;
+}
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -11,28 +29,43 @@ export default function Home() {
     if (!prompt.trim()) return;
 
     setLoading(true);
-    setAnswer("");
+    setAnswer("Carregando o robô local...");
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const model = await getRobot();
+
+      setAnswer("Analisando seu projeto...");
+
+      const messages = [
+        {
+          role: "system",
+          content:
+            "Você é o Meu Dev Robot, um agente de desenvolvimento. Responda em português do Brasil. Analise pedidos de criação de sites, sistemas e automações. Explique as funcionalidades e proponha uma estrutura de desenvolvimento.",
         },
-        body: JSON.stringify({
-          prompt,
-        }),
+        {
+          role: "user",
+          content: prompt,
+        },
+      ];
+
+      const output = await model(messages, {
+        max_new_tokens: 400,
+        do_sample: false,
       });
 
-      const data = await response.json();
+      const result = output[0]?.generated_text;
 
-      if (!response.ok) {
-        throw new Error(data.error || "Ocorreu um erro.");
+      if (Array.isArray(result)) {
+        setAnswer(result[result.length - 1]?.content || "Não consegui gerar uma resposta.");
+      } else {
+        setAnswer(result || "Não consegui gerar uma resposta.");
       }
-
-      setAnswer(data.text);
     } catch (error) {
-      setAnswer(error.message);
+      console.error(error);
+
+      setAnswer(
+        "Não foi possível iniciar o modelo local. Verifique se o navegador suporta WebGPU e tente novamente."
+      );
     } finally {
       setLoading(false);
     }
