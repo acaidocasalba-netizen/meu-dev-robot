@@ -4,22 +4,37 @@ import { useState } from "react";
 import { pipeline } from "@huggingface/transformers";
 
 let robot = null;
-
 async function getRobot() {
   if (!robot) {
-    robot = await pipeline(
-      "text-generation",
-      "onnx-community/Qwen2.5-0.5B-Instruct",
-      {
-        dtype: "q4",
-        device: "webgpu",
+    try {
+      if (navigator.gpu) {
+        robot = await pipeline(
+          "text-generation",
+          "onnx-community/Qwen2.5-0.5B-Instruct",
+          {
+            dtype: "q4",
+            device: "webgpu",
+          }
+        );
       }
-    );
+    } catch (error) {
+      console.log("WebGPU indisponível. Usando WASM.");
+    }
+
+    if (!robot) {
+      robot = await pipeline(
+        "text-generation",
+        "onnx-community/Qwen2.5-0.5B-Instruct",
+        {
+          dtype: "q4",
+          device: "wasm",
+        }
+      );
+    }
   }
 
   return robot;
 }
-
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [answer, setAnswer] = useState("");
