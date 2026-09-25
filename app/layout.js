@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: "Meu Dev Robot",
   description: "Agente de IA para criação de sites e automações",
