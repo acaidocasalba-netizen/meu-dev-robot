@@ -76,11 +76,14 @@ export default function Home() {
         setAnswer(result || "Não consegui gerar uma resposta.");
       }
     } catch (error) {
-      console.error(error);
+  console.error(error);
 
-      setAnswer(
-        "Não foi possível iniciar o modelo local. Verifique se o navegador suporta WebGPU e tente novamente."
-      );
+  setAnswer(
+    `Erro ao iniciar o modelo: ${
+      error?.message || String(error)
+    }`
+  );
+}
     } finally {
       setLoading(false);
     }
