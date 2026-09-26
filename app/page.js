@@ -63,10 +63,12 @@ export default function Home() {
         },
       ];
 
-      const output = await model(messages, {
-        max_new_tokens: 400,
-        do_sample: false,
-      });
+     const output = await model(messages, {
+  max_new_tokens: 300,
+  do_sample: true,
+  temperature: 0.7,
+  repetition_penalty: 1.15,
+});
 
       const result = output[0]?.generated_text;
 
